@@ -13,7 +13,20 @@ UTC = 0x5A # Unit Type Code
 ADDR = 0x00 #  Address of the Device
 STX = 0x02 # Start of Text
 CMD = 0x00 # Command Code
+ETX = 0x03 # End of Text
 COT = 0x04 # End of Transmission
+
+CMD = {
+"write_TEXT":"A",
+"read_TEXT":"B",
+"write_SPECIAL":"C",
+"read_SPECIAL":"D",
+"write_STRING":"E",
+"read_STRING":"F",
+"write_DOTS":"G",
+"read_DOTS":"H"
+}
+
 
 def serial_init():
     ser.port = SERIAL_PORT #serial port
@@ -26,15 +39,23 @@ def serial_init():
     ser.rtscts = False     #disable hardware (RTS/CTS) flow control
     ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
 
-def setup_frame(data):
-    DATA = bytearray(data,'utf-8')
-    DATA_LEN = len([NULL,SOH,UTC,ADDR,*DATA,COT])
-    tx_buffer = struct.pack(DATA_LEN*'h',NULL,SOH,UTC,ADDR,*DATA,COT)
+def setup_frame(data,cmd):
+    DATA_b = bytearray(data,'ascii')
+    CMD_b = bytearray(CMD[cmd],'ascii')
+
+    DATA_LEN = len([NULL,SOH,*CMD_b,UTC,ADDR,*DATA_b,ETX,COT])
+    tx_buffer = struct.pack(DATA_LEN*'b',NULL,SOH,*CMD_b,UTC,ADDR,*DATA_b,ETX,COT)
+    import ipdb; ipdb.set_trace()
+
     return(tx_buffer)
 
 def main():
     serial_init()
-    print(setup_frame("DEADBEEF"))
+    print("\n\n\n\n\n\n\n")
+    data_s = "DEADBEEF"
+    cmd_s = "write_STRING"
+    print("NULL,SOH,   "+cmd_s+",   UTC, ADDR,   "+data_s+",   ETX,COT")
+    print(setup_frame(data_s,cmd_s))
     return
 
 if __name__ == '__main__':
